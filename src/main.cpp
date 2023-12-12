@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "esp_camera.h"
+#include "flash_blinker.hpp"
 #include <WiFi.h>
 
 //
@@ -26,9 +27,16 @@ const char* password = "*********";
 void startCameraServer();
 
 void setup() {
+
+  pinMode(4, OUTPUT);
+
   Serial.begin(115200);
   Serial.setDebugOutput(true);
-  Serial.println();
+  Serial.println("Hello!");
+
+  {
+    flash_blinker flash(4, 1000);
+  }
 
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -51,7 +59,7 @@ void setup() {
   config.pin_reset = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
-  
+
   // if PSRAM IC present, init with UXGA resolution and higher JPEG quality
   //                      for larger pre-allocated frame buffer.
   if(psramFound()){

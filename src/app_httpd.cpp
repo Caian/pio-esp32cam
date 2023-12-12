@@ -16,6 +16,7 @@
 #include "esp_camera.h"
 #include "img_converters.h"
 #include "camera_index.h"
+#include "flash_blinker.hpp"
 #include "Arduino.h"
 
 #include "fb_gfx.h"
@@ -219,6 +220,8 @@ static esp_err_t capture_handler(httpd_req_t *req){
     camera_fb_t * fb = NULL;
     esp_err_t res = ESP_OK;
     int64_t fr_start = esp_timer_get_time();
+
+    flash_blinker flash(4, 200);
 
     fb = esp_camera_fb_get();
     if (!fb) {
@@ -431,7 +434,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
         int64_t recognize_time = (fr_recognize - fr_face)/1000;
         int64_t encode_time = (fr_encode - fr_recognize)/1000;
         int64_t process_time = (fr_encode - fr_start)/1000;
-        
+
         int64_t frame_time = fr_end - last_frame;
         last_frame = fr_end;
         frame_time /= 1000;
@@ -628,7 +631,7 @@ void startCameraServer(){
 
 
     ra_filter_init(&ra_filter, 20);
-    
+
     mtmn_config.type = FAST;
     mtmn_config.min_face = 80;
     mtmn_config.pyramid = 0.707;
@@ -642,9 +645,9 @@ void startCameraServer(){
     mtmn_config.o_threshold.score = 0.7;
     mtmn_config.o_threshold.nms = 0.7;
     mtmn_config.o_threshold.candidate_number = 1;
-    
+
     face_id_init(&id_list, FACE_ID_SAVE_NUMBER, ENROLL_CONFIRM_TIMES);
-    
+
     Serial.printf("Starting web server on port: '%d'\n", config.server_port);
     if (httpd_start(&camera_httpd, &config) == ESP_OK) {
         httpd_register_uri_handler(camera_httpd, &index_uri);
